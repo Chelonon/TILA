@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>liliana modas</title>
+  <meta name="description" content="Roupas com estilo e preço justo. Compre online.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topo">
+    <a href="#" class="logo" id="logo">
+  <img src="imagens/oi.png" alt="oi">
+</a>
+    <button class="btn-carrinho" id="abrirCarrinho" aria-label="Abrir carrinho">
+      Carrinho <span class="contador" id="contador">0</span>
+    </button>
+  </header>
+
+  <section class="hero">
+    <h1>Moda</h1>
+    <p>Peças selecionadas.</p>
+    <a href="#catalogo" class="btn-principal">Ver coleção</a>
+  </section>
+
+  <main id="catalogo" class="container">
+    <h2>Nossa coleção</h2>
+    <div class="filtros" id="filtros"></div>
+    <div class="grade" id="grade"></div>
+  </main>
+
+  <footer class="rodape">
+    <p id="rodapeTexto"></p>
+    <a id="linkWhats" href="#" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>
+  </footer>
+
+  <!-- Carrinho lateral -->
+  <div class="fundo" id="fundo"></div>
+  <aside class="carrinho" id="carrinho" aria-label="Carrinho de compras">
+    <div class="carrinho-topo">
+      <h3>Seu carrinho</h3>
+      <button id="fecharCarrinho" aria-label="Fechar carrinho">&times;</button>
+    </div>
+    <div class="carrinho-itens" id="itensCarrinho"></div>
+    <div class="carrinho-rodape">
+      <div class="total">Total: <strong id="total">R$ 0,00</strong></div>
+      <button class="btn-principal" id="finalizar">Finalizar pedido</button>
+      <button class="btn-limpar" id="limpar">Esvaziar carrinho</button>
+    </div>
+  </aside>
+
+  <script src="produtos.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
