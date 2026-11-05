@@ -13,7 +13,7 @@ const PRODUTOS = [
   {
     id: 1,
     nome: "Vestido Floral Midi",
-    preco: 129.90,
+    preco: 00,01,
     categoria: "Vestidos",
     tamanhos: ["P", "M", "G"],
     imagem: "imagens/vestido-floral.jpg"
