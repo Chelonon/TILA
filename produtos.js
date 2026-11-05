@@ -30,8 +30,8 @@ const PRODUTOS = [
     categoria: "Blusas",
     tamanhos: ["P", "M", "G", "GG"],
     imagens: [
-      "imagens/foto-1.jpeg",
       "imagens/foto-2.jpeg",
+      "imagens/foto-1.jpeg",
       "imagens/foto-3.jpeg"
     ]
   },
@@ -42,9 +42,9 @@ const PRODUTOS = [
     categoria: "Calças",
     tamanhos: ["36", "38", "40", "42"],
     imagens: [
-      "imagens/foto-1.jpeg",
+      "imagens/foto-3.jpeg",
       "imagens/foto-2.jpeg",
-      "imagens/foto-3.jpeg"
+      "imagens/foto-1.jpeg"
     ]
   }
 ];
