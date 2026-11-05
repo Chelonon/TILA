@@ -49,7 +49,11 @@ function renderProdutos() {
 
   $("grade").innerHTML = lista.map((p) => `
     <article class="card">
-      <img class="card-img" src="${p.imagem}" alt="${p.nome}" loading="lazy" onerror="imgFallback(this)">
+      <img class="card-img foto-principal" src="${p.imagens[0]}" alt="${p.nome}" data-id="${p.id}" data-i="0" loading="lazy" onerror="imgFallback(this)">
+      ${p.imagens.length > 1 ? `
+        <div class="miniaturas">
+          ${p.imagens.map((img, i) => `<img class="miniatura ${i === 0 ? "ativa" : ""}" src="${img}" alt="Foto ${i + 1} de ${p.nome}" data-i="${i}" onerror="imgFallback(this)">`).join("")}
+        </div>` : ""}
       <div class="card-corpo">
         <div class="card-nome">${p.nome}</div>
         <div class="card-preco">${moeda(p.preco)}</div>
@@ -70,6 +74,57 @@ $("grade").addEventListener("click", (e) => {
   if (!p) return;
   const tamanho = $("tam-" + id).value;
   adicionar(id, tamanho);
+});
+
+// ---------- Galeria e foto ampliada ----------
+let fotosAtuais = [];
+let indiceFoto = 0;
+
+function mostrarFoto() {
+  $("lbImg").src = fotosAtuais[indiceFoto];
+}
+function abrirFoto(id, i) {
+  const p = produtoPorId(id);
+  if (!p) return;
+  fotosAtuais = p.imagens;
+  indiceFoto = i;
+  mostrarFoto();
+  $("lightbox").hidden = false;
+}
+function fecharFoto() {
+  $("lightbox").hidden = true;
+}
+function mudarFoto(passo) {
+  indiceFoto = (indiceFoto + passo + fotosAtuais.length) % fotosAtuais.length;
+  mostrarFoto();
+}
+
+$("grade").addEventListener("click", (e) => {
+  const mini = e.target.closest(".miniatura");
+  if (mini) {
+    const card = mini.closest(".card");
+    const principal = card.querySelector(".foto-principal");
+    const p = produtoPorId(Number(principal.dataset.id));
+    principal.src = p.imagens[Number(mini.dataset.i)];
+    principal.dataset.i = mini.dataset.i;
+    card.querySelectorAll(".miniatura").forEach((m) => m.classList.toggle("ativa", m === mini));
+    return;
+  }
+  const foto = e.target.closest(".foto-principal");
+  if (foto) abrirFoto(Number(foto.dataset.id), Number(foto.dataset.i));
+});
+
+$("lbFechar").addEventListener("click", fecharFoto);
+$("lbAnt").addEventListener("click", () => mudarFoto(-1));
+$("lbProx").addEventListener("click", () => mudarFoto(1));
+$("lightbox").addEventListener("click", (e) => {
+  if (e.target === $("lightbox")) fecharFoto();
+});
+document.addEventListener("keydown", (e) => {
+  if ($("lightbox").hidden) return;
+  if (e.key === "Escape") fecharFoto();
+  if (e.key === "ArrowLeft") mudarFoto(-1);
+  if (e.key === "ArrowRight") mudarFoto(1);
 });
 
 // ---------- Carrinho ----------
@@ -121,7 +176,7 @@ function renderCarrinho() {
     const p = produtoPorId(i.id);
     return `
       <div class="item">
-        <img class="item-img" src="${p.imagem}" alt="${p.nome}" onerror="imgFallback(this)">
+        <img class="item-img" src="${p.imagens[0]}" alt="${p.nome}" onerror="imgFallback(this)">
         <div class="item-info">
           <strong>${p.nome}</strong><br>
           <small>Tamanho ${i.tamanho} · ${moeda(p.preco)}</small>
