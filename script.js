@@ -1,235 +1,193 @@
-// ---------- Utilidades ----------
-const moeda = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+// ============================================================
+// FUNÇÕES AUXILIARES
+// (a configuração da loja e o catálogo ficam em produtos.js)
+// ============================================================
+const dinheiro = (valor) =>
+  valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
 const $ = (id) => document.getElementById(id);
+const produtoPorId = (id) => PRODUTOS.find((p) => p.id === id);
 
-// ---------- Estado ----------
-let categoriaAtual = "Todas";
-let carrinho = [];
-
+// A cesta fica salva no navegador, para não perder se recarregar a página
+let cesta = [];
 try {
-  carrinho = JSON.parse(localStorage.getItem("carrinho") || "[]");
-  if (!Array.isArray(carrinho)) carrinho = [];
-} catch (e) {
-  carrinho = [];
-}
+  cesta = JSON.parse(localStorage.getItem("carrinho") || "[]");
+  if (!Array.isArray(cesta)) cesta = [];
+} catch (e) { cesta = []; }
 
-function salvar() {
-  try { localStorage.setItem("carrinho", JSON.stringify(carrinho)); } catch (e) {}
-}
+const salvarCesta = () => {
+  try { localStorage.setItem("carrinho", JSON.stringify(cesta)); } catch (e) {}
+};
 
-function produtoPorId(id) {
-  return PRODUTOS.find((p) => p.id === id);
-}
-
-// ---------- Imagem com fallback ----------
-function imgFallback(img) {
-  img.onerror = null;
-  img.removeAttribute("src");
-}
-
-// ---------- Filtros ----------
-function renderFiltros() {
-  const categorias = ["Todas", ...new Set(PRODUTOS.map((p) => p.categoria))];
-  $("filtros").innerHTML = categorias
-    .map((c) => `<button class="${c === categoriaAtual ? "ativo" : ""}" data-cat="${c}">${c}</button>`)
-    .join("");
-}
-
-$("filtros").addEventListener("click", (e) => {
-  const btn = e.target.closest("button");
-  if (!btn) return;
-  categoriaAtual = btn.dataset.cat;
-  renderFiltros();
-  renderProdutos();
-});
-
-// ---------- Catálogo ----------
-function renderProdutos() {
-  const lista = PRODUTOS.filter((p) => categoriaAtual === "Todas" || p.categoria === categoriaAtual);
-
-  $("grade").innerHTML = lista.map((p) => `
-    <article class="card">
-      <img class="card-img foto-principal" src="${p.imagens[0]}" alt="${p.nome}" data-id="${p.id}" data-i="0" loading="lazy" onerror="imgFallback(this)">
-      ${p.imagens.length > 1 ? `
-        <div class="miniaturas">
-          ${p.imagens.map((img, i) => `<img class="miniatura ${i === 0 ? "ativa" : ""}" src="${img}" alt="Foto ${i + 1} de ${p.nome}" data-i="${i}" onerror="imgFallback(this)">`).join("")}
-        </div>` : ""}
-      <div class="card-corpo">
-        <div class="card-nome">${p.nome}</div>
-        <div class="card-preco">${moeda(p.preco)}</div>
-        <select id="tam-${p.id}" aria-label="Tamanho de ${p.nome}">
-          ${p.tamanhos.map((t) => `<option value="${t}">Tamanho ${t}</option>`).join("")}
-        </select>
-        <button class="btn-principal" data-adicionar="${p.id}">Adicionar ao carrinho</button>
+// ============================================================
+// CATÁLOGO
+// ============================================================
+function mostrarCatalogo() {
+  $("grade").innerHTML = PRODUTOS.map((p) => `
+    <article class="produto" data-id="${p.id}">
+      <div class="produto__foto"><img src="${p.imagens[0]}" alt="${p.nome}"></div>
+      <div class="produto__info">
+        <span>${p.nome}</span>
+        <span class="produto__preco">${dinheiro(p.preco)}</span>
       </div>
     </article>
   `).join("");
+
+  document.querySelectorAll(".produto").forEach((el) => {
+    el.addEventListener("click", () => abrirPeca(Number(el.dataset.id)));
+  });
 }
 
-$("grade").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-adicionar]");
-  if (!btn) return;
-  const id = Number(btn.dataset.adicionar);
-  const p = produtoPorId(id);
-  if (!p) return;
-  const tamanho = $("tam-" + id).value;
-  adicionar(id, tamanho);
-});
-
-// ---------- Galeria e foto ampliada ----------
-let fotosAtuais = [];
-let indiceFoto = 0;
-
-function mostrarFoto() {
-  $("lbImg").src = fotosAtuais[indiceFoto];
-}
-function abrirFoto(id, i) {
-  const p = produtoPorId(id);
-  if (!p) return;
-  fotosAtuais = p.imagens;
-  indiceFoto = i;
-  mostrarFoto();
-  $("lightbox").hidden = false;
-}
-function fecharFoto() {
-  $("lightbox").hidden = true;
-}
-function mudarFoto(passo) {
-  indiceFoto = (indiceFoto + passo + fotosAtuais.length) % fotosAtuais.length;
-  mostrarFoto();
+// ============================================================
+// PAINÉIS (abrir e fechar)
+// ============================================================
+function abrirPainel(id) {
+  fecharPaineis();
+  $(id).classList.add("ativo");
+  $(id).setAttribute("aria-hidden", "false");
+  $("fundo").classList.add("ativo");
 }
 
-$("grade").addEventListener("click", (e) => {
-  const mini = e.target.closest(".miniatura");
-  if (mini) {
-    const card = mini.closest(".card");
-    const principal = card.querySelector(".foto-principal");
-    const p = produtoPorId(Number(principal.dataset.id));
-    principal.src = p.imagens[Number(mini.dataset.i)];
-    principal.dataset.i = mini.dataset.i;
-    card.querySelectorAll(".miniatura").forEach((m) => m.classList.toggle("ativa", m === mini));
+function fecharPaineis() {
+  document.querySelectorAll(".painel").forEach((p) => {
+    p.classList.remove("ativo");
+    p.setAttribute("aria-hidden", "true");
+  });
+  $("fundo").classList.remove("ativo");
+}
+
+$("fundo").addEventListener("click", fecharPaineis);
+document.querySelectorAll("[data-fechar]").forEach((b) => b.addEventListener("click", fecharPaineis));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharPaineis(); });
+
+// ============================================================
+// PEÇA (painel com fotos e tamanhos)
+// ============================================================
+let pecaAtual = null;
+let tamanhoEscolhido = null;
+
+function abrirPeca(id) {
+  pecaAtual = produtoPorId(id);
+  tamanhoEscolhido = null;
+
+  $("peca-imagem").src = pecaAtual.imagens[0];
+  $("peca-imagem").alt = pecaAtual.nome;
+  $("peca-nome").textContent = pecaAtual.nome;
+  $("peca-preco").textContent = dinheiro(pecaAtual.preco);
+
+  // Miniaturas (só aparecem se a peça tiver mais de uma foto)
+  $("peca-miniaturas").innerHTML = pecaAtual.imagens.length > 1
+    ? pecaAtual.imagens.map((img, i) =>
+        `<img class="miniatura ${i === 0 ? "ativa" : ""}" src="${img}" alt="Foto ${i + 1} de ${pecaAtual.nome}" data-i="${i}">`
+      ).join("")
+    : "";
+  document.querySelectorAll(".miniatura").forEach((m) => {
+    m.addEventListener("click", () => {
+      $("peca-imagem").src = pecaAtual.imagens[Number(m.dataset.i)];
+      document.querySelectorAll(".miniatura").forEach((x) => x.classList.toggle("ativa", x === m));
+    });
+  });
+
+  $("peca-tamanhos").innerHTML = pecaAtual.tamanhos
+    .map((t) => `<button class="tamanho" data-tam="${t}">${t}</button>`)
+    .join("");
+
+  document.querySelectorAll(".tamanho").forEach((b) => {
+    b.addEventListener("click", () => {
+      tamanhoEscolhido = b.dataset.tam;
+      document.querySelectorAll(".tamanho").forEach((x) => x.classList.remove("ativo"));
+      b.classList.add("ativo");
+      const aviso = document.querySelector(".aviso");
+      if (aviso) aviso.remove();
+    });
+  });
+
+  abrirPainel("painel-peca");
+}
+
+$("peca-adicionar").addEventListener("click", () => {
+  if (!tamanhoEscolhido) {
+    if (!document.querySelector(".aviso")) {
+      $("peca-tamanhos").insertAdjacentHTML("afterend", '<p class="aviso">Escolha um tamanho.</p>');
+    }
     return;
   }
-  const foto = e.target.closest(".foto-principal");
-  if (foto) abrirFoto(Number(foto.dataset.id), Number(foto.dataset.i));
-});
-
-$("lbFechar").addEventListener("click", fecharFoto);
-$("lbAnt").addEventListener("click", () => mudarFoto(-1));
-$("lbProx").addEventListener("click", () => mudarFoto(1));
-$("lightbox").addEventListener("click", (e) => {
-  if (e.target === $("lightbox")) fecharFoto();
-});
-document.addEventListener("keydown", (e) => {
-  if ($("lightbox").hidden) return;
-  if (e.key === "Escape") fecharFoto();
-  if (e.key === "ArrowLeft") mudarFoto(-1);
-  if (e.key === "ArrowRight") mudarFoto(1);
-});
-
-// ---------- Carrinho ----------
-function adicionar(id, tamanho) {
-  const existente = carrinho.find((i) => i.id === id && i.tamanho === tamanho);
+  const existente = cesta.find((i) => i.id === pecaAtual.id && i.tamanho === tamanhoEscolhido);
   if (existente) existente.qtd += 1;
-  else carrinho.push({ id, tamanho, qtd: 1 });
-  salvar();
-  renderCarrinho();
-  abrirCarrinho();
-}
+  else cesta.push({ id: pecaAtual.id, tamanho: tamanhoEscolhido, qtd: 1 });
 
-function alterarQtd(id, tamanho, delta) {
-  const item = carrinho.find((i) => i.id === id && i.tamanho === tamanho);
-  if (!item) return;
-  item.qtd += delta;
-  if (item.qtd <= 0) carrinho = carrinho.filter((i) => i !== item);
-  salvar();
-  renderCarrinho();
-}
+  atualizar();
+  abrirPainel("painel-cesta");
+});
 
-function remover(id, tamanho) {
-  carrinho = carrinho.filter((i) => !(i.id === id && i.tamanho === tamanho));
-  salvar();
-  renderCarrinho();
-}
+// ============================================================
+// CESTA
+// ============================================================
+function mostrarCesta() {
+  // remove da cesta peças que não existem mais no catálogo
+  cesta = cesta.filter((i) => produtoPorId(i.id));
 
-function totalCarrinho() {
-  return carrinho.reduce((soma, i) => {
-    const p = produtoPorId(i.id);
-    return p ? soma + p.preco * i.qtd : soma;
-  }, 0);
-}
+  const total = cesta.reduce((soma, i) => soma + produtoPorId(i.id).preco * i.qtd, 0);
+  const quantidade = cesta.reduce((soma, i) => soma + i.qtd, 0);
 
-function renderCarrinho() {
-  carrinho = carrinho.filter((i) => produtoPorId(i.id));
-  salvar();
+  $("contador").textContent = quantidade;
+  $("cesta-total").textContent = dinheiro(total);
 
-  const qtdTotal = carrinho.reduce((s, i) => s + i.qtd, 0);
-  $("contador").textContent = qtdTotal;
-  $("total").textContent = moeda(totalCarrinho());
-
-  if (carrinho.length === 0) {
-    $("itensCarrinho").innerHTML = `<p class="vazio">Seu carrinho está vazio.</p>`;
+  if (cesta.length === 0) {
+    $("cesta-itens").innerHTML = '<p class="cesta__vazia">Sua cesta está vazia.</p>';
     return;
   }
 
-  $("itensCarrinho").innerHTML = carrinho.map((i) => {
+  $("cesta-itens").innerHTML = cesta.map((i, pos) => {
     const p = produtoPorId(i.id);
     return `
       <div class="item">
-        <img class="item-img" src="${p.imagens[0]}" alt="${p.nome}" onerror="imgFallback(this)">
-        <div class="item-info">
-          <strong>${p.nome}</strong><br>
-          <small>Tamanho ${i.tamanho} · ${moeda(p.preco)}</small>
-          <div class="qtd">
-            <button data-menos="${i.id}|${i.tamanho}">−</button>
-            <span>${i.qtd}</span>
-            <button data-mais="${i.id}|${i.tamanho}">+</button>
-            <button class="remover" data-rem="${i.id}|${i.tamanho}">Remover</button>
+        <img src="${p.imagens[0]}" alt="${p.nome}">
+        <div>
+          <p class="item__nome">${p.nome}</p>
+          <p class="item__detalhe">Tamanho ${i.tamanho}</p>
+          <div class="item__linha">
+            <div class="item__qtd">
+              <button data-menos="${pos}">−</button>
+              <span>${i.qtd}</span>
+              <button data-mais="${pos}">+</button>
+            </div>
+            <span>${dinheiro(p.preco * i.qtd)}</span>
           </div>
+          <button class="item__remover" data-remover="${pos}">Remover</button>
         </div>
       </div>`;
   }).join("");
+
+  document.querySelectorAll("[data-mais]").forEach((b) =>
+    b.addEventListener("click", () => { cesta[b.dataset.mais].qtd += 1; atualizar(); }));
+  document.querySelectorAll("[data-menos]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const i = cesta[b.dataset.menos];
+      i.qtd -= 1;
+      if (i.qtd <= 0) cesta.splice(b.dataset.menos, 1);
+      atualizar();
+    }));
+  document.querySelectorAll("[data-remover]").forEach((b) =>
+    b.addEventListener("click", () => { cesta.splice(b.dataset.remover, 1); atualizar(); }));
 }
 
-$("itensCarrinho").addEventListener("click", (e) => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  const leitura = (attr) => {
-    const [id, tam] = b.dataset[attr].split("|");
-    return [Number(id), tam];
-  };
-  if (b.dataset.menos) alterarQtd(...leitura("menos"), -1);
-  if (b.dataset.mais) alterarQtd(...leitura("mais"), 1);
-  if (b.dataset.rem) remover(...leitura("rem"));
-});
-
-// ---------- Abrir / fechar ----------
-function abrirCarrinho() {
-  $("carrinho").classList.add("aberto");
-  $("fundo").classList.add("aberto");
+function atualizar() {
+  salvarCesta();
+  mostrarCesta();
 }
-function fecharCarrinho() {
-  $("carrinho").classList.remove("aberto");
-  $("fundo").classList.remove("aberto");
-}
-$("abrirCarrinho").addEventListener("click", abrirCarrinho);
-$("fecharCarrinho").addEventListener("click", fecharCarrinho);
-$("fundo").addEventListener("click", fecharCarrinho);
 
-$("limpar").addEventListener("click", () => {
-  carrinho = [];
-  salvar();
-  renderCarrinho();
-});
+$("abrir-carrinho").addEventListener("click", () => abrirPainel("painel-cesta"));
 
-// ---------- Checkout único do Mercado Pago ----------
+// ============================================================
+// FINALIZAR COMPRA (checkout único do Mercado Pago, via Worker)
+// ============================================================
 let finalizando = false;
 $("finalizar").addEventListener("click", async () => {
-  if (carrinho.length === 0) {
-    alert("Seu carrinho está vazio.");
+  if (cesta.length === 0) {
+    alert("Sua cesta está vazia.");
     return;
   }
-
   if (!CONFIG.apiCheckout || CONFIG.apiCheckout.includes("COLOQUE_A_URL")) {
     alert("A integração ainda não foi configurada. Falta inserir a URL do Cloudflare Worker em produtos.js.");
     return;
@@ -240,14 +198,14 @@ $("finalizar").addEventListener("click", async () => {
   const botao = $("finalizar");
   const textoOriginal = botao.textContent;
   botao.disabled = true;
-  botao.textContent = "Preparando pagamento...";
+  botao.textContent = "PREPARANDO PAGAMENTO...";
 
   try {
     const resposta = await fetch(CONFIG.apiCheckout, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        items: carrinho.map((i) => ({ id: i.id, size: i.tamanho, quantity: i.qtd }))
+        items: cesta.map((i) => ({ id: i.id, size: i.tamanho, quantity: i.qtd }))
       })
     });
 
@@ -257,9 +215,8 @@ $("finalizar").addEventListener("click", async () => {
       throw new Error("O servidor não retornou um endereço de pagamento válido.");
     }
 
-    carrinho = [];
-    salvar();
-    renderCarrinho();
+    cesta = [];
+    atualizar();
     window.location.href = dados.checkout_url;
   } catch (erro) {
     console.error("Erro no checkout:", erro);
@@ -271,13 +228,12 @@ $("finalizar").addEventListener("click", async () => {
   }
 });
 
-// ---------- Início ----------
+// ============================================================
+// INÍCIO
+// ============================================================
 document.title = `${CONFIG.nomeLoja} | Moda Feminina`;
-// Não substituímos o conteúdo do elemento #logo para preservar a imagem da marca.
-$("rodapeTexto").textContent = `© ${new Date().getFullYear()} ${CONFIG.nomeLoja}. Todos os direitos reservados.`;
-$("linkWhats").href = `https://wa.me/${CONFIG.whatsapp}`;
-$("abrirCarrinho").style.display = "";
+$("rodape-whats").href = `https://wa.me/${CONFIG.whatsapp}`;
+$("rodape-copy").textContent = `© ${new Date().getFullYear()} ${CONFIG.nomeLoja}. Todos os direitos reservados.`;
 
-renderFiltros();
-renderProdutos();
-renderCarrinho();
+mostrarCatalogo();
+mostrarCesta();

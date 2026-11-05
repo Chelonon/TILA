@@ -2,61 +2,84 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TILA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TILA | Moda Feminina</title>
   <meta name="description" content="Roupas com estilo e preço justo. Compre online.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- CABEÇALHO -->
   <header class="topo">
-    <a href="#" class="logo" id="logo">
-  <img src="imagens/tila.jpeg" alt="oi">
-</a>
-    <button class="btn-carrinho" id="abrirCarrinho" aria-label="Abrir carrinho">
-      Carrinho <span class="contador" id="contador">0</span>
-    </button>
+    <nav class="topo__esq">
+      <a href="#catalogo" class="topo__link">MULHER</a>
+    </nav>
+
+    <a href="#" class="logo" id="logo"><img src="imagens/tila.jpeg" alt="TILA"></a>
+
+    <nav class="topo__dir">
+      <a href="#contato" class="topo__link topo__link--ajuda">AJUDA</a>
+      <button class="topo__link" id="abrir-carrinho">CESTA (<span id="contador">0</span>)</button>
+    </nav>
   </header>
 
-  <section class="hero">
-    <h1>Moda</h1>
-    <p>Peças selecionadas.</p>
-    <a href="#catalogo" class="btn-principal">Ver coleção</a>
-  </section>
-
-  <main id="catalogo" class="container">
-    <h2>Nossa coleção</h2>
-    <div class="filtros" id="filtros"></div>
-    <div class="grade" id="grade"></div>
+  <!-- CATÁLOGO -->
+  <main>
+    <p class="titulo-secao" id="catalogo">MULHER / NOVIDADES</p>
+    <section class="grade" id="grade"></section>
   </main>
 
-  <footer class="rodape">
-    <p id="rodapeTexto"></p>
-    <a id="linkWhats" href="#" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a>
+  <!-- RODAPÉ -->
+  <footer class="rodape" id="contato">
+    <div class="rodape__col">
+      <h4>AJUDA</h4>
+      <a href="#">Envios</a>
+      <a href="#">Pagamentos</a>
+      <a href="#">Trocas e devoluções</a>
+    </div>
+    <div class="rodape__col">
+      <h4>EMPRESA</h4>
+      <a href="#">Quem somos</a>
+      <a href="#">Política de privacidade</a>
+    </div>
+    <div class="rodape__col">
+      <h4>SIGA-NOS</h4>
+      <a href="#">Instagram</a>
+      <a href="#" id="rodape-whats" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+    <p class="rodape__copy" id="rodape-copy"></p>
   </footer>
 
-  <!-- Carrinho lateral -->
+  <!-- FUNDO ESCURO (atrás dos painéis) -->
   <div class="fundo" id="fundo"></div>
-  <aside class="carrinho" id="carrinho" aria-label="Carrinho de compras">
-    <div class="carrinho-topo">
-      <h3>Seu carrinho</h3>
-      <button id="fecharCarrinho" aria-label="Fechar carrinho">&times;</button>
-    </div>
-    <div class="carrinho-itens" id="itensCarrinho"></div>
-    <div class="carrinho-rodape">
-      <div class="total">Total: <strong id="total">R$ 0,00</strong></div>
-      <button class="btn-principal" id="finalizar">Finalizar pedido</button>
-      <button class="btn-limpar" id="limpar">Esvaziar carrinho</button>
+
+  <!-- PAINEL DA PEÇA -->
+  <aside class="painel" id="painel-peca" aria-hidden="true">
+    <button class="painel__fechar" data-fechar>FECHAR</button>
+    <img id="peca-imagem" alt="">
+    <div class="miniaturas" id="peca-miniaturas"></div>
+    <div class="painel__info">
+      <h2 id="peca-nome"></h2>
+      <p class="painel__preco" id="peca-preco"></p>
+      <p class="painel__rotulo">TAMANHO</p>
+      <div class="tamanhos" id="peca-tamanhos"></div>
+      <button class="botao" id="peca-adicionar">ADICIONAR</button>
     </div>
   </aside>
 
-  <!-- Foto ampliada -->
-  <div class="lightbox" id="lightbox" hidden>
-    <button class="lb-fechar" id="lbFechar" aria-label="Fechar">&times;</button>
-    <button class="lb-seta lb-ant" id="lbAnt" aria-label="Foto anterior">&#10094;</button>
-    <img id="lbImg" alt="">
-    <button class="lb-seta lb-prox" id="lbProx" aria-label="Próxima foto">&#10095;</button>
-  </div>
+  <!-- PAINEL DA CESTA -->
+  <aside class="painel painel--cesta" id="painel-cesta" aria-hidden="true">
+    <button class="painel__fechar" data-fechar>FECHAR</button>
+    <div class="painel__info">
+      <h2>CESTA</h2>
+      <div id="cesta-itens"></div>
+      <div class="cesta__total">
+        <span>TOTAL</span>
+        <span id="cesta-total">R$ 0,00</span>
+      </div>
+      <button class="botao" id="finalizar">FINALIZAR COMPRA</button>
+    </div>
+  </aside>
 
   <script src="produtos.js"></script>
   <script src="script.js"></script>
